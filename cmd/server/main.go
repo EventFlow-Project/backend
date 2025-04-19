@@ -1,4 +1,4 @@
-package server
+package main
 
 import (
 	"context"
@@ -8,6 +8,13 @@ import (
 	"time"
 
 	"github.com/EventFlow-Project/backend/internal/config"
+	"github.com/EventFlow-Project/backend/internal/core/ports"
+	"github.com/EventFlow-Project/backend/internal/core/services"
+
+	"github.com/EventFlow-Project/backend/internal/infrastructure/api"
+	"github.com/EventFlow-Project/backend/internal/infrastructure/database"
+	"github.com/EventFlow-Project/backend/internal/infrastructure/logger"
+	"github.com/EventFlow-Project/backend/internal/infrastructure/repositories"
 
 	"go.uber.org/fx"
 	"go.uber.org/zap"
@@ -16,6 +23,12 @@ import (
 func main() {
 	app := fx.New(
 		config.Module,
+		logger.Module,
+		database.Module,
+		services.Module,
+		ports.Module,
+		repositories.Module,
+		api.Module,
 	)
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)

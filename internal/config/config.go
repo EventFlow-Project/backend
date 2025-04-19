@@ -12,6 +12,20 @@ type DatabaseConfig struct {
 	Port     int    `env:"DB_PORT"`
 	User     string `env:"DB_USER"`
 	Password string `env:"DB_PASSWORD"`
+	Name     string `env:"DB_NAME"`
+}
+
+type MinioConfig struct {
+	Endpoint        string `env:"MINIO_ENDPOINT"`
+	PublicEndpoint  string `env:"MINIO_PUBLIC_ENDPOINT"`
+	AccessKeyID     string `env:"MINIO_ROOT_USER"`
+	SecretAccessKey string `env:"MINIO_ROOT_PASSWORD"`
+	UseSSL          bool   `env:"MINIO_USE_SSL"`
+	BucketName      string `env:"MINIO_BUCKET_NAME"`
+	Port            int    `env:"MINIO_PORT"`
+}
+type JWTConfig struct {
+	Secret string `env:"JWT_SECRET"`
 }
 
 type Config struct {
@@ -19,6 +33,8 @@ type Config struct {
 	ServerPort    int    `env:"SERVER_PORT"`
 
 	Database DatabaseConfig
+	Minio    MinioConfig
+	JWT      JWTConfig
 }
 
 func LoadConfig() (*Config, error) {
