@@ -7,9 +7,9 @@ import (
 
 	"github.com/EventFlow-Project/backend/internal/config"
 	"github.com/EventFlow-Project/backend/internal/infrastructure/api/handlers"
+	"github.com/EventFlow-Project/backend/internal/infrastructure/api/middleware"
 
 	"github.com/gofiber/fiber/v3"
-	"github.com/gofiber/fiber/v3/middleware/cors"
 
 	"go.uber.org/fx"
 )
@@ -19,15 +19,9 @@ func NewApp(handler *handlers.HTTPHandler) *fiber.App {
 		ReadTimeout:  30 * time.Second,
 		WriteTimeout: 30 * time.Second,
 		IdleTimeout:  120 * time.Second,
-		BodyLimit:    10 * 1024 * 1024, // 10MB
+		BodyLimit:    10 * 1024 * 1024,
+		ErrorHandler: middleware.ErrorHandler,
 	})
-
-	app.Use(cors.New(cors.Config{
-		AllowOrigins: []string{"https://event-flow.ru", "https://api.event-flow.ru"},
-		AllowHeaders: []string{"Origin", "Content-Type", "Accept", "Authorization"},
-		AllowMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-	}))
-
 	handler.RegisterRoutes(app)
 
 	return app
@@ -41,6 +35,7 @@ func StartServer(lc fx.Lifecycle, app *fiber.App, cfg *config.Config) {
 					fmt.Printf("Server error: %v\n", err)
 				}
 			}()
+
 			return nil
 		},
 		OnStop: func(ctx context.Context) error {

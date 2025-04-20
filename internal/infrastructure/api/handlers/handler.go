@@ -7,36 +7,30 @@ import (
 )
 
 type HTTPHandler struct {
-	cfg          *config.Config
-	authHandler  *AuthHandler
-	userHandler  *UserHandler
-	minioHandler *MinioHandler
+	cfg         *config.Config
+	authHandler *AuthHandler
+	userHandler *UserHandler
 }
 
 func NewHTTPHandler(
 	cfg *config.Config,
 	authHandler *AuthHandler,
 	userHandler *UserHandler,
-	minioHandler *MinioHandler,
 ) *HTTPHandler {
 	return &HTTPHandler{
-		cfg:          cfg,
-		authHandler:  authHandler,
-		userHandler:  userHandler,
-		minioHandler: minioHandler,
+		cfg:         cfg,
+		authHandler: authHandler,
+		userHandler: userHandler,
 	}
 }
 
 func (h *HTTPHandler) RegisterRoutes(app *fiber.App) {
-	app.Get("/health", h.healthCheck)
+	app.Get("/health", func(c fiber.Ctx) error {
+		return c.JSON(fiber.Map{
+			"status": "ok",
+		})
+	})
 
 	h.authHandler.RegisterRoutes(app)
 	h.userHandler.RegisterRoutes(app)
-	h.minioHandler.RegisterRoutes(app)
-}
-
-func (h *HTTPHandler) healthCheck(c fiber.Ctx) error {
-	return c.JSON(fiber.Map{
-		"status": "ok",
-	})
 }

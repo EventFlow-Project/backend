@@ -24,6 +24,7 @@ type User struct {
 }
 
 type SafeUser struct {
+	ID           string    `json:"id"`
 	Email        string    `json:"email"`
 	Name         string    `json:"name"`
 	Avatar       string    `json:"avatar"`
@@ -40,8 +41,15 @@ type EditUserInfo struct {
 	Avatar string `json:"avatar"`
 }
 
+type SearchUserResponse struct {
+	ID     string `json:"id"`
+	Name   string `json:"name"`
+	Avatar string `json:"avatar"`
+}
+
 func (u *User) ToSafeUser() *SafeUser {
 	return &SafeUser{
+		ID:           u.ID,
 		Email:        u.Email,
 		Name:         u.Name,
 		Avatar:       u.Avatar,
@@ -50,5 +58,13 @@ func (u *User) ToSafeUser() *SafeUser {
 		ActivityArea: u.ActivityArea,
 		CreatedAt:    u.CreatedAt,
 		UpdatedAt:    u.UpdatedAt,
+	}
+}
+
+func (u *User) ToSearchResponse() *SearchUserResponse {
+	return &SearchUserResponse{
+		ID:     u.ID,
+		Name:   u.Name,
+		Avatar: u.Avatar,
 	}
 }

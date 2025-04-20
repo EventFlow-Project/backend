@@ -46,6 +46,7 @@ func (d *Database) Close() error {
 	sqlDB, err := d.DB.DB()
 	if err != nil {
 		return fmt.Errorf("failed to get underlying *sql.DB: %w", err)
+
 	}
 	return sqlDB.Close()
 }

@@ -7,29 +7,57 @@ import (
 )
 
 type UserService struct {
-	repo   ports.UserRepository
-	config *config.Config
+	repo       ports.UserRepository
+	config     *config.Config
+	jwtService *JWTService
 }
 
-func NewUserService(repo ports.UserRepository, config *config.Config) *UserService {
+func NewUserService(repo ports.UserRepository, config *config.Config, jwtService *JWTService) *UserService {
 	return &UserService{
-		repo:   repo,
-		config: config,
+		repo:       repo,
+		config:     config,
+		jwtService: jwtService,
 	}
 }
 
 func (s *UserService) GetUserInfo(accessToken string) (*models.SafeUser, error) {
-	user, err := s.repo.GetUserInfo(accessToken)
+	userID, err := s.jwtService.GetUserIDFromToken(accessToken)
 	if err != nil {
 		return nil, err
 	}
+
+	user, err := s.repo.GetUserByID(userID)
+	if err != nil {
+		return nil, err
+	}
+
 	return user.ToSafeUser(), nil
 }
 
 func (s *UserService) EditUserInfo(accessToken string, info *models.EditUserInfo) (*models.SafeUser, error) {
-	user, err := s.repo.EditUserInfo(accessToken, info)
+	userID, err := s.jwtService.GetUserIDFromToken(accessToken)
 	if err != nil {
 		return nil, err
 	}
+
+	user, err := s.repo.EditUserInfo(userID, info)
+	if err != nil {
+		return nil, err
+	}
+
 	return user.ToSafeUser(), nil
+}
+
+func (s *UserService) SearchUsersByName(name string) ([]*models.SearchUserResponse, error) {
+	users, err := s.repo.SearchUsersByName(name)
+	if err != nil {
+		return nil, err
+	}
+
+	searchResults := make([]*models.SearchUserResponse, len(users))
+	for i, user := range users {
+		searchResults[i] = user.ToSearchResponse()
+	}
+
+	return searchResults, nil
 }

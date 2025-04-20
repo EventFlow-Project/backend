@@ -7,6 +7,7 @@ var Module = fx.Module("services",
 		NewJWTService,
 		NewAuthService,
 		NewUserService,
+		NewFriendService,
 		NewMinioService,
 	),
 )

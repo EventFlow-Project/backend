@@ -27,7 +27,6 @@ func NewMinioRepository(cfg *config.Config) (ports.MinioRepository, error) {
 		return nil, fmt.Errorf("failed to initialize minio client: %w", err)
 	}
 
-	// Проверяем существование бакета
 	exists, err := minioClient.BucketExists(context.Background(), cfg.Minio.BucketName)
 	if err != nil {
 		return nil, fmt.Errorf("failed to check bucket existence: %w", err)
@@ -47,19 +46,16 @@ func NewMinioRepository(cfg *config.Config) (ports.MinioRepository, error) {
 }
 
 func (r *MinioRepositoryImpl) UploadBase64Image(base64Data string, fileName string) (string, error) {
-	// Удаляем префикс data:image/...;base64, если он есть
 	base64Data = strings.TrimPrefix(base64Data, "data:image/")
 	if idx := strings.Index(base64Data, ";base64,"); idx != -1 {
 		base64Data = base64Data[idx+8:]
 	}
 
-	// Декодируем base64 в байты
 	imageData, err := base64.StdEncoding.DecodeString(base64Data)
 	if err != nil {
 		return "", fmt.Errorf("failed to decode base64 data: %w", err)
 	}
 
-	// Загружаем файл в Minio
 	_, err = r.client.PutObject(
 		context.Background(),
 		r.config.Minio.BucketName,
@@ -92,6 +88,8 @@ func (r *MinioRepositoryImpl) DeleteImage(fileName string) error {
 	)
 	if err != nil {
 		return fmt.Errorf("failed to delete file from minio: %w", err)
+
 	}
+
 	return nil
 }

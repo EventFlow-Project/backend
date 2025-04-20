@@ -20,6 +20,7 @@ func NewMinioService(repo ports.MinioRepository, config *config.Config) *MinioSe
 
 func (s *MinioService) UploadImage(base64Data string) (string, error) {
 	fileName := uuid.New().String() + ".jpg"
+
 	return s.repo.UploadBase64Image(base64Data, fileName)
 }
 

@@ -30,14 +30,12 @@ func main() {
 		repositories.Module,
 		api.Module,
 	)
-
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 	defer cancel()
 
 	if err := app.Start(ctx); err != nil {
 		zap.L().Fatal("Failed to start application", zap.Error(err))
 	}
-
 	stopChan := make(chan os.Signal, 1)
 	signal.Notify(stopChan, syscall.SIGINT, syscall.SIGTERM)
 	<-stopChan

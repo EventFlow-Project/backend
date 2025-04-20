@@ -58,8 +58,8 @@ func (r *AuthRepositoryImpl) UpdateUser(user *models.User) error {
 	if r.db == nil || r.db.DB == nil {
 		return errors.New("database connection is not initialized")
 	}
-
 	user.UpdatedAt = time.Now()
+
 	result := r.db.DB.Save(user)
 	if result.Error != nil {
 		return result.Error
@@ -72,8 +72,8 @@ func (r *AuthRepositoryImpl) GetUserByName(name string) (*models.User, error) {
 	if r.db == nil || r.db.DB == nil {
 		return nil, errors.New("database connection is not initialized")
 	}
-
 	var user models.User
+
 	result := r.db.DB.Where("name = ?", name).First(&user)
 	if result.Error != nil {
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
@@ -89,8 +89,8 @@ func (r *AuthRepositoryImpl) GetUserByEmail(email string) (*models.User, error) 
 	if r.db == nil || r.db.DB == nil {
 		return nil, errors.New("database connection is not initialized")
 	}
-
 	var user models.User
+
 	result := r.db.DB.Where("email = ?", email).First(&user)
 	if result.Error != nil {
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {

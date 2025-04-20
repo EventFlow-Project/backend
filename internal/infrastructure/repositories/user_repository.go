@@ -6,44 +6,24 @@ import (
 
 	"github.com/EventFlow-Project/backend/internal/core/models"
 	"github.com/EventFlow-Project/backend/internal/core/ports"
-	"github.com/EventFlow-Project/backend/internal/core/services"
 	"github.com/EventFlow-Project/backend/internal/infrastructure/database"
-	"github.com/golang-jwt/jwt"
 	"gorm.io/gorm"
 )
 
 type UserRepositoryImpl struct {
-	db         *database.Database
-	jwtService *services.JWTService
+	db *database.Database
 }
 
-func NewUserRepository(db *database.Database, jwtService *services.JWTService) ports.UserRepository {
+func NewUserRepository(db *database.Database) ports.UserRepository {
 	return &UserRepositoryImpl{
-		db:         db,
-		jwtService: jwtService,
+		db: db,
 	}
 }
 
-func (r *UserRepositoryImpl) GetUserInfo(accessToken string) (*models.User, error) {
+func (r *UserRepositoryImpl) GetUserByID(userID string) (*models.User, error) {
 	if r.db == nil || r.db.DB == nil {
 		return nil, errors.New("database connection is not initialized")
 	}
-
-	token, err := r.jwtService.ValidateToken(accessToken)
-	if err != nil {
-		return nil, errors.New("invalid token")
-	}
-
-	claims, ok := token.Claims.(jwt.MapClaims)
-	if !ok {
-		return nil, errors.New("invalid token claims")
-	}
-
-	userID, ok := claims["user_id"].(string)
-	if !ok {
-		return nil, errors.New("user ID not found in token")
-	}
-
 	var user models.User
 
 	result := r.db.DB.Where("id = ?", userID).First(&user)
@@ -58,24 +38,9 @@ func (r *UserRepositoryImpl) GetUserInfo(accessToken string) (*models.User, erro
 	return &user, nil
 }
 
-func (r *UserRepositoryImpl) EditUserInfo(accessToken string, info *models.EditUserInfo) (*models.User, error) {
+func (r *UserRepositoryImpl) EditUserInfo(userID string, info *models.EditUserInfo) (*models.User, error) {
 	if r.db == nil || r.db.DB == nil {
 		return nil, errors.New("database connection is not initialized")
-	}
-
-	token, err := r.jwtService.ValidateToken(accessToken)
-	if err != nil {
-		return nil, errors.New("invalid token")
-	}
-
-	claims, ok := token.Claims.(jwt.MapClaims)
-	if !ok {
-		return nil, errors.New("invalid token claims")
-	}
-
-	userID, ok := claims["user_id"].(string)
-	if !ok {
-		return nil, errors.New("user ID not found in token")
 	}
 	var user models.User
 
@@ -90,7 +55,6 @@ func (r *UserRepositoryImpl) EditUserInfo(accessToken string, info *models.EditU
 
 	if info.Email != user.Email {
 		var existingUser models.User
-
 		result := r.db.DB.Where("email = ? AND id != ?", info.Email, userID).First(&existingUser)
 
 		if result.Error == nil {
@@ -112,4 +76,18 @@ func (r *UserRepositoryImpl) EditUserInfo(accessToken string, info *models.EditU
 	}
 
 	return &user, nil
+}
+
+func (r *UserRepositoryImpl) SearchUsersByName(name string) ([]*models.User, error) {
+	if r.db == nil || r.db.DB == nil {
+		return nil, errors.New("database connection is not initialized")
+	}
+	var users []*models.User
+
+	result := r.db.DB.Where("LOWER(name) LIKE LOWER(?)", "%"+name+"%").Find(&users)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+
+	return users, nil
 }
