@@ -82,18 +82,28 @@ func (r *FriendRepositoryImpl) GetFriendsList(userID string) ([]models.SafeUser,
 	if r.db == nil || r.db.DB == nil {
 		return nil, errors.New("database connection is not initialized")
 	}
-	var friends []models.SafeUser
+	var users []*models.User
 
-	err := r.db.DB.Table("users").
-		Joins("JOIN friendships ON users.id = friendships.friend_id").
-		Where("friendships.user_id = ?", userID).
-		Find(&friends).Error
+	err := r.db.DB.Model(&models.User{}).
+		Distinct("users.*").
+		Joins("JOIN friendships ON ((friendships.user_id = ? AND friendships.friend_id = users.id) OR (friendships.friend_id = ? AND friendships.user_id = users.id))", userID, userID).
+		Where("friendships.deleted_at IS NULL").
+		Find(&users).Error
 
 	if err != nil {
 		return nil, err
 	}
 
-	return friends, nil
+	safeUsers := make([]models.SafeUser, len(users))
+	for i, user := range users {
+		safeUsers[i] = models.SafeUser{
+			ID:     user.ID,
+			Name:   user.Name,
+			Avatar: user.Avatar,
+		}
+	}
+
+	return safeUsers, nil
 }
 
 func (r *FriendRepositoryImpl) RemoveFriend(userID, friendID string) error {
@@ -106,17 +116,22 @@ func (r *FriendRepositoryImpl) RemoveFriend(userID, friendID string) error {
 		return tx.Error
 	}
 
-	if err := tx.Where("(user_id = ? AND friend_id = ?) OR (user_id = ? AND friend_id = ?)",
-		userID, friendID, friendID, userID).
-		Delete(&models.Friendship{}).Error; err != nil {
+	now := time.Now()
+	if err := tx.Model(&models.Friendship{}).
+		Where("(user_id = ? AND friend_id = ?) OR (user_id = ? AND friend_id = ?)",
+			userID, friendID, friendID, userID).
+		Update("deleted_at", now).Error; err != nil {
 		tx.Rollback()
+
 		return err
 	}
 
-	if err := tx.Where("(from_id = ? AND to_id = ?) OR (from_id = ? AND to_id = ?)",
-		userID, friendID, friendID, userID).
-		Delete(&models.FriendRequest{}).Error; err != nil {
+	if err := tx.Model(&models.FriendRequest{}).
+		Where("(from_id = ? AND to_id = ?) OR (from_id = ? AND to_id = ?)",
+			userID, friendID, friendID, userID).
+		Update("deleted_at", now).Error; err != nil {
 		tx.Rollback()
+
 		return err
 	}
 
