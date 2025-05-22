@@ -10,6 +10,7 @@ import (
 	"github.com/EventFlow-Project/backend/internal/infrastructure/api/middleware"
 
 	"github.com/gofiber/fiber/v3"
+	"github.com/gofiber/fiber/v3/middleware/cors"
 
 	"go.uber.org/fx"
 )
@@ -22,6 +23,15 @@ func NewApp(handler *handlers.HTTPHandler) *fiber.App {
 		BodyLimit:    10 * 1024 * 1024,
 		ErrorHandler: middleware.ErrorHandler,
 	})
+
+	app.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"http://localhost:3000"},
+		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},
+		AllowCredentials: true,
+		MaxAge:           300,
+	}))
+
 	handler.RegisterRoutes(app)
 
 	return app

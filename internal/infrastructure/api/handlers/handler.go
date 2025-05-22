@@ -7,20 +7,23 @@ import (
 )
 
 type HTTPHandler struct {
-	cfg         *config.Config
-	authHandler *AuthHandler
-	userHandler *UserHandler
+	cfg          *config.Config
+	authHandler  *AuthHandler
+	userHandler  *UserHandler
+	eventHandler *EventHandler
 }
 
 func NewHTTPHandler(
 	cfg *config.Config,
 	authHandler *AuthHandler,
 	userHandler *UserHandler,
+	eventHandler *EventHandler,
 ) *HTTPHandler {
 	return &HTTPHandler{
-		cfg:         cfg,
-		authHandler: authHandler,
-		userHandler: userHandler,
+		cfg:          cfg,
+		authHandler:  authHandler,
+		userHandler:  userHandler,
+		eventHandler: eventHandler,
 	}
 }
 
@@ -33,4 +36,5 @@ func (h *HTTPHandler) RegisterRoutes(app *fiber.App) {
 
 	h.authHandler.RegisterRoutes(app)
 	h.userHandler.RegisterRoutes(app)
+	h.eventHandler.RegisterRoutes(app)
 }

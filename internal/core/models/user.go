@@ -11,8 +11,7 @@ type User struct {
 	Email        string `json:"email" gorm:"uniqueIndex;not null"`
 	Name         string `json:"name" gorm:"not null"`
 	PasswordHash string `json:"-" gorm:"not null"`
-
-	Avatar string `json:"avatar" gorm:"not null"`
+	Avatar       string `json:"avatar" gorm:"not null"`
 
 	Role         string `json:"role" validate:"required"`
 	Description  string `json:"description" validate:"required"`
